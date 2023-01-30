@@ -9,3 +9,7 @@ LAYERS = {
     'fg detail bottom': 3,
     'fg detail top': 4,
 }
+
+PATHS = {
+    'game_icon': 'game/graphics/player/right/0.png',
+}

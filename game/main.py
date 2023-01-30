@@ -2,7 +2,7 @@
 import sys
 import pygame as pg
 
-from settings import WINDOW_WIDTH, WINDOW_HEIGHT
+from settings import WINDOW_WIDTH, WINDOW_HEIGHT, PATHS
 
 
 class Main:
@@ -12,6 +12,8 @@ class Main:
         """Initializes game."""
         pg.init()
         self.display_surface = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.icon = pg.image.load(PATHS['game_icon'])
+        pg.display.set_icon(self.icon)
         pg.display.set_caption('Contra')
         self.clock = pg.time.Clock()
 
