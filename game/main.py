@@ -2,7 +2,7 @@
 import sys
 import pygame as pg
 
-from settings import WINDOW_WIDTH, WINDOW_HEIGHT, PATHS
+from code.settings import WINDOW_WIDTH, WINDOW_HEIGHT, PATHS
 
 
 class Main:
