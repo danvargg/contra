@@ -1,8 +1,13 @@
 """Game main module."""
 import sys
+
 import pygame as pg
+from pytmx.util_pygame import load_pygame
 
 from code.settings import WINDOW_WIDTH, WINDOW_HEIGHT, PATHS
+from code.tiles import Tile
+from code.player import Player
+from code.sprites import Sprite
 
 
 class Main:
@@ -17,6 +22,19 @@ class Main:
         pg.display.set_caption('Contra')
         self.clock = pg.time.Clock()
 
+        # Groups
+        self.all_sprites = pg.sprite.Group()
+
+        self.setup()
+
+    def setup(self):
+        """Sets up game."""
+        tmx_map = load_pygame(PATHS['map'])
+        for x, y, surf in tmx_map.get_layer_by_name('Level').tiles():
+            Tile(pos=(x * 64, y * 64), surf=surf, groups=self.all_sprites)
+
+        Player(pos=(100, 200), groups=self.all_sprites)
+
     def run(self):
         """Game entry point."""
         while True:
@@ -28,6 +46,9 @@ class Main:
             dt = self.clock.tick() / 1000
 
             self.display_surface.fill((249, 131, 103))
+
+            self.all_sprites.update(dt)
+            self.all_sprites.draw(surface=self.display_surface)
 
             pg.display.update()
 

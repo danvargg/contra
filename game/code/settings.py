@@ -12,4 +12,5 @@ LAYERS = {
 
 PATHS = {
     'game_icon': 'game/graphics/player/right/0.png',
+    'map': 'game/data/map.tmx'
 }
