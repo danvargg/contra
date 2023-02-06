@@ -4,10 +4,10 @@ import sys
 import pygame as pg
 from pytmx.util_pygame import load_pygame
 
-from code.settings import WINDOW_WIDTH, WINDOW_HEIGHT, PATHS
+from code.settings import WINDOW_WIDTH, WINDOW_HEIGHT, PATHS, LAYERS
 from code.tiles import Tile
 from code.player import Player
-from code.sprites import Sprite
+from code.sprites import AllSprites
 
 
 class Main:
@@ -23,17 +23,26 @@ class Main:
         self.clock = pg.time.Clock()
 
         # Groups
-        self.all_sprites = pg.sprite.Group()
+        self.all_sprites = AllSprites()
 
         self.setup()
 
     def setup(self):
         """Sets up game."""
         tmx_map = load_pygame(PATHS['map'])
-        for x, y, surf in tmx_map.get_layer_by_name('Level').tiles():
-            Tile(pos=(x * 64, y * 64), surf=surf, groups=self.all_sprites)
 
-        Player(pos=(100, 200), groups=self.all_sprites)
+        # Tiles
+        for x, y, surf in tmx_map.get_layer_by_name('Level').tiles():
+            Tile(pos=(x * 64, y * 64), surf=surf, groups=self.all_sprites, z=LAYERS['Level'])
+
+        for layer in ['BG', 'BG Detail', 'FG Detail Bottom', 'FG Detail Top']:
+            for x, y, surf in tmx_map.get_layer_by_name(layer).tiles():
+                Tile(pos=(x * 64, y * 64), surf=surf, groups=self.all_sprites, z=LAYERS[layer])
+
+        # Objects
+        for obj in tmx_map.get_layer_by_name('Entities'):
+            if obj.name == 'Player':
+                self.player = Player(pos=(obj.x, obj.y), groups=self.all_sprites)
 
     def run(self):
         """Game entry point."""
@@ -48,7 +57,7 @@ class Main:
             self.display_surface.fill((249, 131, 103))
 
             self.all_sprites.update(dt)
-            self.all_sprites.draw(surface=self.display_surface)
+            self.all_sprites.custom_draw(player=self.player)
 
             pg.display.update()
 

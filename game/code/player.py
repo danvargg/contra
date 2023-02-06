@@ -2,6 +2,8 @@
 import pygame as pg
 from pygame.math import Vector2 as vector
 
+from code.settings import LAYERS
+
 
 class Player(pg.sprite.Sprite):
     def __init__(self, pos, groups) -> None:
@@ -9,13 +11,14 @@ class Player(pg.sprite.Sprite):
         self.image = pg.Surface((40, 80))
         self.image.fill('yellow')
         self.rect = self.image.get_rect(topleft=pos)
+        self.z = LAYERS['Level']
 
         # float based movement
         self.direction = vector()
         self.pos = vector(self.rect.topleft)
         self.speed = 400
 
-    def input(self):
+    def input(self):  # TODO: can inputs be refactored?
         keys = pg.key.get_pressed()
 
         if keys[pg.K_RIGHT]:
