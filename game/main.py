@@ -57,8 +57,9 @@ class Main:
         self.platform_border_rects = []
         for obj in tmx_map.get_layer_by_name('Platforms'):
             if obj.name == 'Platform':
-                MovingPlatform((obj.x, obj.y), obj.image, [self.all_sprites,
-                                                           self.collision_sprites, self.platform_sprites])
+                MovingPlatform(
+                    (obj.x, obj.y), obj.image, [self.all_sprites, self.collision_sprites, self.platform_sprites]
+                )
             else:  # border
                 border_rect = pg.Rect(obj.x, obj.y, obj.width, obj.height)
                 self.platform_border_rects.append(border_rect)
@@ -75,6 +76,10 @@ class Main:
                         platform.rect.bottom = border.top
                         platform.pos.y = platform.rect.y
                         platform.direction.y = -1
+            if platform.rect.colliderect(self.player.rect) and self.player.rect.centery > platform.rect.centery:
+                platform.rect.bottom = self.player.rect.top
+                platform.pos.y = platform.rect.y
+                platform.direction.y = -1
 
     def run(self):
         """Game entry point."""
