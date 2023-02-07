@@ -8,7 +8,7 @@ from code.settings import WINDOW_WIDTH, WINDOW_HEIGHT, PATHS, LAYERS
 from code.tiles import Tile, CollisionTile, MovingPlatform
 from code.player import Player
 from code.sprites import AllSprites
-from code.bullets import Bullet
+from code.bullets import Bullet, FireAnimation
 
 
 class Main:
@@ -31,8 +31,11 @@ class Main:
 
         self.setup()
 
-        # Bullet images
+        # bullet images
         self.bullet_surf = pg.image.load(PATHS['bullet']).convert_alpha()
+        self.fire_surfs = [
+            pg.image.load(PATHS['fire_0']).convert_alpha(), pg.image.load(PATHS['fire_1']).convert_alpha()
+        ]
 
     def setup(self):
         """Sets up game."""
@@ -92,6 +95,7 @@ class Main:
 
     def shoot(self, pos, direction, entity):
         Bullet(pos, self.bullet_surf, direction, [self.all_sprites, self.bullet_sprites])
+        FireAnimation(entity, self.fire_surfs, direction, self.all_sprites)
 
     def run(self):
         """Game entry point."""
