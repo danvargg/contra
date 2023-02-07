@@ -8,6 +8,7 @@ from code.settings import WINDOW_WIDTH, WINDOW_HEIGHT, PATHS, LAYERS
 from code.tiles import Tile, CollisionTile, MovingPlatform
 from code.player import Player
 from code.sprites import AllSprites
+from code.bullets import Bullet
 
 
 class Main:
@@ -26,14 +27,16 @@ class Main:
         self.all_sprites = AllSprites()
         self.collision_sprites = pg.sprite.Group()
         self.platform_sprites = pg.sprite.Group()
+        self.bullet_sprites = pg.sprite.Group()
 
         self.setup()
+
+        # Bullet images
+        self.bullet_surf = pg.image.load(PATHS['bullet']).convert_alpha()
 
     def setup(self):
         """Sets up game."""
         tmx_map = load_pygame(PATHS['map'])
-
-        print(tmx_map.get_layer_by_name('Level').tiles())
 
         # Collision tiles
         for x, y, surf in tmx_map.get_layer_by_name('Level').tiles():
@@ -50,7 +53,8 @@ class Main:
                     pos=(obj.x, obj.y),
                     groups=self.all_sprites,
                     path=PATHS['player'],
-                    collision_sprites=self.collision_sprites
+                    collision_sprites=self.collision_sprites,
+                    shoot=self.shoot
                 )
 
         # Platforms
@@ -81,6 +85,14 @@ class Main:
                 platform.pos.y = platform.rect.y
                 platform.direction.y = -1
 
+    def bullet_collisions(self):
+        # obstacles
+        for obstacle in self.collision_sprites.sprites():
+            pg.sprite.spritecollide(obstacle, self.bullet_sprites, True)
+
+    def shoot(self, pos, direction, entity):
+        Bullet(pos, self.bullet_surf, direction, [self.all_sprites, self.bullet_sprites])
+
     def run(self):
         """Game entry point."""
         while True:
@@ -95,6 +107,7 @@ class Main:
 
             self.platform_collisions()
             self.all_sprites.update(dt)
+            self.bullet_collisions()
             self.all_sprites.custom_draw(player=self.player)
 
             pg.display.update()
