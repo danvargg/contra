@@ -5,7 +5,7 @@ import pygame as pg
 from pytmx.util_pygame import load_pygame
 
 from code.settings import WINDOW_WIDTH, WINDOW_HEIGHT, PATHS, LAYERS
-from code.tiles import Tile
+from code.tiles import Tile, CollisionTile
 from code.player import Player
 from code.sprites import AllSprites
 
@@ -24,6 +24,7 @@ class Main:
 
         # Groups
         self.all_sprites = AllSprites()
+        self.collision_sprites = pg.sprite.Group()
 
         self.setup()
 
@@ -31,9 +32,11 @@ class Main:
         """Sets up game."""
         tmx_map = load_pygame(PATHS['map'])
 
-        # Tiles
+        print(tmx_map.get_layer_by_name('Level').tiles())
+
+        # Collision tiles
         for x, y, surf in tmx_map.get_layer_by_name('Level').tiles():
-            Tile(pos=(x * 64, y * 64), surf=surf, groups=self.all_sprites, z=LAYERS['Level'])
+            CollisionTile(pos=(x * 64, y * 64), surf=surf, groups=[self.all_sprites, self.collision_sprites])
 
         for layer in ['BG', 'BG Detail', 'FG Detail Bottom', 'FG Detail Top']:
             for x, y, surf in tmx_map.get_layer_by_name(layer).tiles():
@@ -42,7 +45,12 @@ class Main:
         # Objects
         for obj in tmx_map.get_layer_by_name('Entities'):
             if obj.name == 'Player':
-                self.player = Player(pos=(obj.x, obj.y), groups=self.all_sprites, path=PATHS['player'])
+                self.player = Player(
+                    pos=(obj.x, obj.y),
+                    groups=self.all_sprites,
+                    path=PATHS['player'],
+                    collision_sprites=self.collision_sprites
+                )
 
     def run(self):
         """Game entry point."""

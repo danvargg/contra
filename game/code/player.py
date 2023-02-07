@@ -1,5 +1,6 @@
 """Player TBD."""
 import os
+import glob
 
 import pygame as pg
 from pygame.math import Vector2 as vector
@@ -8,7 +9,7 @@ from code.settings import LAYERS, PATHS
 
 
 class Player(pg.sprite.Sprite):
-    def __init__(self, pos, groups, path) -> None:
+    def __init__(self, pos, groups, path, collision_sprites) -> None:
         super().__init__(groups)
 
         self.import_assets(path)
@@ -25,18 +26,45 @@ class Player(pg.sprite.Sprite):
         self.pos = vector(self.rect.topleft)
         self.speed = 400
 
+        # Collision
+        self.old_rect = self.rect.copy()
+        self.collision_sprites = collision_sprites
+
+        # vertical movement
+        self.gravity = 15
+        self.jump_speed = 1400
+        self.on_floor = False
+        self.duck = False
+
+    def get_status(self):
+        # idle
+        if self.direction.x == 0 and self.on_floor:
+            self.status = self.status.split('_')[0] + '_idle'
+        # jump
+        if self.direction.y != 0 and not self.on_floor:
+            self.status = self.status.split('_')[0] + '_jump'
+
+        # duck
+        if self.on_floor and self.duck:
+            self.status = self.status.split('_')[0] + '_duck'
+
+    def check_contact(self):
+        bottom_rect = pg.Rect(0, 0, self.rect.width, 5)
+        bottom_rect.midtop = self.rect.midbottom
+        for sprite in self.collision_sprites.sprites():
+            if sprite.rect.colliderect(bottom_rect):
+                if self.direction.y > 0:
+                    self.on_floor = True
+
     def import_assets(self, path):
         self.animations = {}
-        for index, folder in enumerate(os.walk(path)):  # TODO: refactor this
-            if index == 0:
-                for name in folder[1]:
-                    self.animations[name] = []
-            else:
-                for file_name in sorted(folder[2], key=lambda string: int(string.split('.')[0])):
-                    path = folder[0].replace('\\', '/') + '/' + file_name
-                    surf = pg.image.load(path).convert_alpha()
-                    key = folder[0].split('\\')[1]
-                    self.animations[key].append(surf)
+        for subdir in os.listdir(path):
+            subdir_path = os.path.join(path, subdir)
+            if os.path.isdir(subdir_path):
+                self.animations[subdir] = []
+                for file in sorted(glob.glob(os.path.join(subdir_path, '*.png'))):
+                    surf = pg.image.load(file).convert_alpha()
+                    self.animations[subdir].append(surf)
 
     def animate(self, dt):
         self.frame_index += 10 * dt
@@ -45,33 +73,67 @@ class Player(pg.sprite.Sprite):
 
         self.image = self.animations[self.status][int(self.frame_index)]
 
-    def input(self):  # TODO: can inputs be refactored?
+    def input(self):
         keys = pg.key.get_pressed()
 
         if keys[pg.K_RIGHT]:
             self.direction.x = 1
+            self.status = 'right'
         elif keys[pg.K_LEFT]:
             self.direction.x = -1
-        else:
+            self.status = 'left'
+        elif not (keys[pg.K_RIGHT] or keys[pg.K_LEFT]):
             self.direction.x = 0
 
-        if keys[pg.K_UP]:
-            self.direction.y = -1
-        elif keys[pg.K_DOWN]:
-            self.direction.y = 1
-        else:
-            self.direction.y = 0
+        if keys[pg.K_UP] and self.on_floor:
+            self.direction.y = -self.jump_speed
+            return
 
-    def move(self, dt: float):
+        self.duck = keys[pg.K_DOWN]
+
+    def collision(self, direction):
+        for sprite in self.collision_sprites.sprites():
+            if sprite.rect.colliderect(self.rect):
+
+                if direction == 'horizontal':
+                    # left collision
+                    if self.rect.left <= sprite.rect.right and self.old_rect.left >= sprite.old_rect.right:
+                        self.rect.left = sprite.rect.right
+                    # right collision
+                    if self.rect.right >= sprite.rect.left and self.old_rect.right <= sprite.old_rect.left:
+                        self.rect.right = sprite.rect.left
+                    self.pos.x = self.rect.x
+                else:
+                    if self.rect.bottom >= sprite.rect.top and self.old_rect.bottom <= sprite.old_rect.top:
+                        self.rect.bottom = sprite.rect.top
+                        self.on_floor = True
+                    if self.rect.top <= sprite.rect.bottom and self.old_rect.top >= sprite.old_rect.bottom:
+                        self.rect.top = sprite.rect.bottom
+                    self.pos.y = self.rect.y
+                    self.direction.y = 0
+
+        if self.on_floor and self.direction.y != 0:
+            self.on_floor = False
+
+    def move(self, dt):
+        if self.duck and self.on_floor:
+            self.direction.x = 0
+
         # horizontal movement
         self.pos.x += self.direction.x * self.speed * dt
         self.rect.x = round(self.pos.x)
+        self.collision('horizontal')
 
         # vertical movement
-        self.pos.y += self.direction.y * self.speed * dt
+        self.direction.y += self.gravity
+        self.pos.y += self.direction.y * dt
         self.rect.y = round(self.pos.y)
+        self.collision('vertical')
 
-    def update(self, dt: float):
+    def update(self, dt):
+        self.old_rect = self.rect.copy()
         self.input()
-        self.move(dt=dt)
-        self.animate(dt=dt)
+        self.get_status()
+        self.move(dt)
+        self.check_contact()
+        self.animate(dt)
