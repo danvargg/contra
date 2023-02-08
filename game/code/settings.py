@@ -17,4 +17,7 @@ PATHS = {
     'bullet': 'game/graphics/bullet.png',
     'fire_0': 'game/graphics/fire/0.png',
     'fire_1': 'game/graphics/fire/1.png',
+    'bg_sky': 'game/graphics/sky/bg_sky.png',
+    'fg_sky': 'game/graphics/sky/fg_sky.png',
+    'enemy': 'game/graphics/enemy'
 }

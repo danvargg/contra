@@ -21,6 +21,7 @@ class Bullet(pg.sprite.Sprite):
         self.pos = vector(self.rect.center)
 
         self.start_time = pg.time.get_ticks()
+        self.mask = pg.mask.from_surface(self.image)
 
     def update(self, dt):
         self.pos += self.direction * self.speed * dt

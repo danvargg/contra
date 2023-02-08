@@ -9,6 +9,7 @@ from code.tiles import Tile, CollisionTile, MovingPlatform
 from code.player import Player
 from code.sprites import AllSprites
 from code.bullets import Bullet, FireAnimation
+from code.enemies import Enemy
 
 
 class Main:
@@ -28,6 +29,7 @@ class Main:
         self.collision_sprites = pg.sprite.Group()
         self.platform_sprites = pg.sprite.Group()
         self.bullet_sprites = pg.sprite.Group()
+        self.vulnerable_sprites = pg.sprite.Group()
 
         self.setup()
 
@@ -54,10 +56,19 @@ class Main:
             if obj.name == 'Player':
                 self.player = Player(
                     pos=(obj.x, obj.y),
-                    groups=self.all_sprites,
+                    groups=[self.all_sprites, self.vulnerable_sprites],
                     path=PATHS['player'],
                     collision_sprites=self.collision_sprites,
                     shoot=self.shoot
+                )
+            if obj.name == 'Enemy':
+                Enemy(
+                    pos=(obj.x, obj.y),
+                    path=PATHS['enemy'],
+                    groups=[self.all_sprites, self.vulnerable_sprites],
+                    shoot=self.shoot,
+                    player=self.player,
+                    collision_sprites=self.collision_sprites
                 )
 
         # Platforms
@@ -92,6 +103,11 @@ class Main:
         # obstacles
         for obstacle in self.collision_sprites.sprites():
             pg.sprite.spritecollide(obstacle, self.bullet_sprites, True)
+
+        # entities
+        for sprite in self.vulnerable_sprites.sprites():
+            if pg.sprite.spritecollide(sprite, self.bullet_sprites, True, pg.sprite.collide_mask):
+                sprite.damage()
 
     def shoot(self, pos, direction, entity):
         Bullet(pos, self.bullet_surf, direction, [self.all_sprites, self.bullet_sprites])

@@ -1,55 +1,27 @@
 """Player TBD."""
-import os
-import glob
+import sys
 
 import pygame as pg
 from pygame.math import Vector2 as vector
 
 from code.settings import LAYERS, PATHS
+from code.entities import Entity
 
 
-class Player(pg.sprite.Sprite):
+class Player(Entity):
     def __init__(self, pos, groups, path, collision_sprites, shoot) -> None:
-        super().__init__(groups)
+        super().__init__(pos, path, groups, shoot)
 
-        self.import_assets(path)
-
-        self.frame_index = 0
-        self.status = 'right'
-
-        self.image = self.animations[self.status][self.frame_index]
-        self.rect = self.image.get_rect(topleft=pos)
-        self.z = LAYERS['Level']
-
-        # float based movement
-        self.direction = vector()
-        self.pos = vector(self.rect.topleft)
-        self.speed = 400
-
-        # Collision
-        self.old_rect = self.rect.copy()
+        # collision
         self.collision_sprites = collision_sprites
 
         # vertical movement
         self.gravity = 15
         self.jump_speed = 1400
         self.on_floor = False
-        self.duck = False
         self.moving_floor = None
 
-        # interaction
-        self.shoot = shoot
-
-        # create a bullet timer
-        self.can_shoot = True
-        self.shoot_time = None
-        self.cooldown = 200
-
-    def shoot_timer(self):
-        if not self.can_shoot:
-            current_time = pg.time.get_ticks()
-            if current_time - self.shoot_time > self.cooldown:
-                self.can_shoot = True
+        self.health = 10
 
     def get_status(self):
         # idle
@@ -72,23 +44,6 @@ class Player(pg.sprite.Sprite):
                     self.on_floor = True
                 if hasattr(sprite, 'direction'):
                     self.moving_floor = sprite
-
-    def import_assets(self, path):
-        self.animations = {}
-        for subdir in os.listdir(path):
-            subdir_path = os.path.join(path, subdir)
-            if os.path.isdir(subdir_path):
-                self.animations[subdir] = []
-                for file in sorted(glob.glob(os.path.join(subdir_path, '*.png'))):
-                    surf = pg.image.load(file).convert_alpha()
-                    self.animations[subdir].append(surf)
-
-    def animate(self, dt):
-        self.frame_index += 10 * dt
-        if self.frame_index >= len(self.animations[self.status]):
-            self.frame_index = 0
-
-        self.image = self.animations[self.status][int(self.frame_index)]
 
     def input(self):
         keys = pg.key.get_pressed()
@@ -167,13 +122,24 @@ class Player(pg.sprite.Sprite):
         self.collision('vertical')
         self.moving_floor = None
 
+    def check_death(self):
+        if self.health <= 0:
+            pg.quit()
+            sys.exit()
+
     def update(self, dt):
         self.old_rect = self.rect.copy()
         self.input()
         self.get_status()
         self.move(dt)
         self.check_contact()
+
         self.animate(dt)
+        self.blink()
 
         # timer
         self.shoot_timer()
+        self.invul_timer()
+
+        # death
+        self.check_death()
