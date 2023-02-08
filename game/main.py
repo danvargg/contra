@@ -10,6 +10,9 @@ from code.player import Player
 from code.sprites import AllSprites
 from code.bullets import Bullet, FireAnimation
 from code.enemies import Enemy
+from code.overlays import HealthBar
+
+# TODO: delete enemies folder
 
 
 class Main:
@@ -32,6 +35,7 @@ class Main:
         self.vulnerable_sprites = pg.sprite.Group()
 
         self.setup()
+        self.health_bar = HealthBar(self.player)
 
         # bullet images
         self.bullet_surf = pg.image.load(PATHS['bullet']).convert_alpha()
@@ -129,6 +133,7 @@ class Main:
             self.all_sprites.update(dt)
             self.bullet_collisions()
             self.all_sprites.custom_draw(player=self.player)
+            self.health_bar.display()
 
             pg.display.update()
 
