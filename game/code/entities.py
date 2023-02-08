@@ -6,7 +6,7 @@ from math import sin
 import pygame as pg
 from pygame.math import Vector2 as vector
 
-from code.settings import LAYERS
+from code.settings import LAYERS, PATHS
 
 
 class Entity(pg.sprite.Sprite):
@@ -43,6 +43,12 @@ class Entity(pg.sprite.Sprite):
         self.hit_time = None
         self.invul_duration = 500
 
+        # audio
+        self.hit_sound = pg.mixer.Sound(PATHS['hit_sound'])
+        self.hit_sound.set_volume(0.2)
+        self.shoot_sound = pg.mixer.Sound(PATHS['bullet_sound'])
+        self.shoot_sound.set_volume(0.2)
+
     def blink(self):
         if not self.is_vulnerable:
             if self.wave_value():
@@ -63,6 +69,7 @@ class Entity(pg.sprite.Sprite):
             self.health -= 1
             self.is_vulnerable = False
             self.hit_time = pg.time.get_ticks()
+            self.hit_sound.play()
 
     def check_death(self):
         if self.health <= 0:

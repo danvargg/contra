@@ -43,6 +43,11 @@ class Main:
             pg.image.load(PATHS['fire_0']).convert_alpha(), pg.image.load(PATHS['fire_1']).convert_alpha()
         ]
 
+        # music
+        self.music = pg.mixer.Sound(PATHS['music'])
+        self.music.play(loops=-1)
+        self.music.set_volume(0.5)
+
     def setup(self):
         """Sets up game."""
         tmx_map = load_pygame(PATHS['map'])

@@ -20,5 +20,8 @@ PATHS = {
     'bg_sky': 'game/graphics/sky/bg_sky.png',
     'fg_sky': 'game/graphics/sky/fg_sky.png',
     'enemy': 'game/graphics/enemy',
-    'health': 'game/graphics/health.png'
+    'health': 'game/graphics/health.png',
+    'music': 'game/audio/music.wav',
+    'hit_sound': 'game/audio/hit.wav',
+    'bullet_sound': 'game/audio/bullet.wav'
 }
